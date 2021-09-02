@@ -41,6 +41,7 @@ const isCloseToBottom = (
 
 function MasonryList<T>(props: Props<T>): ReactElement {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const columnHeights = new Array(props.numColumns);
 
   const {
     keyPrefix,
@@ -58,6 +59,28 @@ function MasonryList<T>(props: Props<T>): ReactElement {
     numColumns = 2,
     style,
   } = props;
+
+  for (let i = 0; i < props.numColumns; i++) columnHeights[i] = 0;
+
+  console.log(columnHeights);
+
+  let columnItems = new Array(props.numColumns);
+
+  for (let i = 0; i < columnItems.length; i++) columnItems[i] = [];
+
+  for (let j = 0; j < data.length; j++) {
+    let item = data[j];
+    let itemHeight = item['itemDimension'].height;
+    let minIndex = 0;
+
+    for (var k = 1; k < columnHeights.length; k++)
+      minIndex = columnHeights[k] < columnHeights[minIndex] ? k : minIndex;
+
+    columnItems[minIndex].push(item);
+    columnHeights[minIndex] += itemHeight;
+  }
+
+  console.log(columnItems[0]);
 
   return (
     <ScrollView
@@ -93,12 +116,9 @@ function MasonryList<T>(props: Props<T>): ReactElement {
               <View
                 key={`${keyPrefix}-${num.toString()}`}
                 style={{flex: 1 / numColumns}}>
-                {data
+                {columnItems[num]
                   .map((el, i) => {
-                    if (i % numColumns === num)
-                      return renderItem({item: el, i});
-
-                    return null;
+                    return renderItem({item: el, i});
                   })
                   .filter((e) => !!e)}
               </View>
